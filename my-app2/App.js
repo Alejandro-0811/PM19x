@@ -4,9 +4,9 @@ import { Button, StyleSheet, Text, View } from 'react-native';
 
 const Texto = (props) => {
   //propiedad contenido que hereda de texto.
-  const { contenido } = props
+  const { children } = props
   return (
-    <Text> {contenido} </Text>
+    <Text> {children} </Text>
   )
 }
 
@@ -17,9 +17,9 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <Texto contenido="hola"></Texto>
-      <Text contenido="mundo"></Text>
-      <Texto contenido="React native"></Texto>
+      <Texto >"Hola"</Texto>
+      <Text >"Mundo"</Text>
+      <Texto >"React native"</Texto>
 
       <Button title="Presioname"></Button>
 
