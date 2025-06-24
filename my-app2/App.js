@@ -1,100 +1,127 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Alert, Platform, Switch, Button } from "react-native";
-import React, { useState } from "react";
+//TextInput y Alert en React Native
 
-const showAlert = (message) => {
-  if (Platform.OS === 'web') {
-    window.alert(message);
-  } else {
-    Alert.alert('Alerta', message);
-  }
-};
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  SafeAreaView,
+  Platform,
+} from "react-native";
 
 const App = () => {
-  const [activo, setActivo] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [telefono, setTelefono] = useState("");
 
-  const cambiarSwitch = () => {
-    setActivo(prev => !prev);
+  const mostrarAlerta = () => {
+    if (!nombre || !email || !password) {
+      if (Platform.OS === "web") {
+        window.alert("Por favor, completa todos los campos obligatorios.");
+      } else {
+        Alert.alert(
+          "Error",
+          "Por favor, completa todos los campos obligatorios.",
+          [{ text: "OK" }]
+        );
+      }
+    } else {
+      if (Platform.OS === "web") {
+        window.alert(`Registro exitoso\nNombre: ${nombre}\nEmail: ${email}`);
+        limpiarFormulario();
+      } else {
+        Alert.alert("Registro exitoso", `Nombre: ${nombre}\nEmail: ${email}`, [
+          { text: "OK", onPress: () => limpiarFormulario() },
+        ]);
+      }
+    }
+  };
+
+  const limpiarFormulario = () => {
+    setNombre("");
+    setEmail("");
+    setPassword("");
+    setTelefono("");
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>React Native Button Test</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.formulario}>
+        <Text style={styles.titulo}>Registro de Usuario</Text>
 
-      <View style={styles.section}>
-        <Text style={styles.description}>Botón Básico</Text>
-        <Button title="Presióname" onPress={() => showAlert("Botón presionado")} />
+        {/* TextInput para nombre */}
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre completo *"
+          value={nombre}
+          onChangeText={setNombre}
+        />
+
+        {/* TextInput para email (con teclado de email) */}
+        <TextInput
+          style={styles.input}
+          placeholder="Email *"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        {/* TextInput para contraseña (secureTextEntry) */}
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña *"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        {/* TextInput para teléfono (keyboardType numérico) */}
+        <TextInput
+          style={styles.input}
+          placeholder="Teléfono (opcional)"
+          value={telefono}
+          onChangeText={setTelefono}
+          keyboardType="phone-pad"
+        />
+
+        {/* Botón para enviar el formulario */}
+        <Button title="Registrarse" onPress={mostrarAlerta} />
       </View>
-
-      <View style={styles.section}>
-        <Text style={styles.description}>Botón de color</Text>
-        <Button title="Color púrpura" color="purple" onPress={() => showAlert("Botón de color presionado")} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.description}>Botón deshabilitado</Text>
-        <Button title="Deshabilitado" disabled onPress={() => showAlert("No funciona :(")} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.description}>Dos botones:</Text>
-        <View style={styles.buttonRow}>
-          <Button title="Izquierda" onPress={() => showAlert("Botón izquierdo")} />
-          <View style={styles.buttonSpacer} />
-          <Button title="Derecha" onPress={() => showAlert("Botón derecho")} />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Activar Característica:</Text>
-        <Switch onValueChange={cambiarSwitch} value={activo} />
-        <Text style={styles.statusText}>Estado actual: {activo ? 'Activado' : 'Desactivado'}</Text>
-      </View>
-
-      <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 };
-
-export default App;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
-    alignItems: "center",
     justifyContent: "center",
     padding: 20,
   },
-  title: {
-    fontSize: 24,
+  formulario: {
+    backgroundColor: "#f5f5f5",
+    padding: 20,
+    borderRadius: 10,
+  },
+  titulo: {
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
-  section: {
-    marginVertical: 10,
-    width: '100%',
-  },
-  description: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  buttonSpacer: {
-    width: 10,
-  },
-  label: {
-    fontSize: 20,
-    marginBottom: 10,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  statusText: {
-    marginTop: 10,
-    fontSize: 18,
-    color: '#555',
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    backgroundColor: "white",
   },
 });
+
+export default App;
