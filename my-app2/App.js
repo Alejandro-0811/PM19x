@@ -1,202 +1,138 @@
-
-import React, { useEffect, useState } from 'react';
+import { StatusBar } from "expo-status-bar";
+import { useState } from "react";
 import {
-  View,
-  Text,
-  SectionList,
-  FlatList,
-  Image,
-  ActivityIndicator,
   StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+  Text,
+  View,
+  Button,
+  Modal,
+  TextInput,
+  FlatList,
+} from "react-native";
 
-const App = () => {    
-  const [secciones, setSecciones] = useState([]);
-  const [pokemonPlano, setPokemonPlano] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [tipoDeLista, setTipoDeLista] = useState('section');
+export default function App() {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [note, setNote] = useState("");
+  const [database, setDatabase] = useState([]);
 
-  useEffect(() => {
-    const obtenerDatos = async () => {
-      try {
-        const resTipos = await fetch('https://pokeapi.co/api/v2/type');
-        const tiposData = await resTipos.json();
-        const tiposLimitados = tiposData.results.slice(0, 18);
-
-        const seccionesFinales = await Promise.all(
-          tiposLimitados.map(async (tipo) => {
-            const resTipo = await fetch(tipo.url);
-            const detalleTipo = await resTipo.json();
-            const pokemons = detalleTipo.pokemon.slice(0, 15);
-
-            const datosPokemon = await Promise.all(
-              pokemons.map(async ({ pokemon }) => {
-                const resPoke = await fetch(pokemon.url);
-                const dataPoke = await resPoke.json();
-                return {
-                  id: dataPoke.id,
-                  name: dataPoke.name,
-                  image: dataPoke.sprites.front_default,
-                };
-              })
-            );
-
-            return {
-              title: tipo.name.charAt(0).toUpperCase() + tipo.name.slice(1),
-              data: datosPokemon,
-            };
-          })
-        );
-
-        setSecciones(seccionesFinales);
-        const todosLosPokemon = seccionesFinales.flatMap(seccion => seccion.data);
-        setPokemonPlano(todosLosPokemon);
-
-      } catch (error) {
-        console.error('Error al cargar datos:', error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    obtenerDatos();
-  }, []);
-
-  const renderItemPokemon = ({ item }) => (
-    <View style={styles.item}>
-      <Text style={styles.name}>{item.id.toString().padStart(3, '0')}</Text>
-      <Image
-        source={{ uri: item.image }}
-        style={styles.image}
-        defaultSource={{ uri: 'https://placehold.co/60x60/cccccc/ffffff?text=...' }}
-      />
-      <Text style={styles.name}>{item.name.toUpperCase()}</Text>
-    </View>
-  );
-
-  if (cargando) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#ff5733" />
-        <Text>Cargando Pokémon...</Text>
-      </View>
-    );
-  }
+  const addNote = () => {
+    if (note.trim() !== "") {
+      setDatabase((prev) => [...prev, note]);
+      setNote("");
+      setModalVisible(false);
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.switchContainer}>
-        <TouchableOpacity
-          style={[styles.switchButton, tipoDeLista === 'section' && styles.switchButtonActive]}
-          onPress={() => setTipoDeLista('section')}
-        >
-          <Text style={[styles.switchButtonText, tipoDeLista === 'section' && styles.switchButtonTextActive]}>
-            Ver por Sección (SectionList)
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.switchButton, tipoDeLista === 'flat' && styles.switchButtonActive]}
-          onPress={() => setTipoDeLista('flat')}
-        >
-          <Text style={[styles.switchButtonText, tipoDeLista === 'flat' && styles.switchButtonTextActive]}>
-            Ver Lista Completa (FlatList)
-          </Text>
-        </TouchableOpacity>
+    <View style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Notas</Text>
       </View>
 
-      {tipoDeLista === 'section' ? (
-        <SectionList
-          sections={secciones}
-          keyExtractor={(item) => `section-${item.id.toString()}`}
-          renderItem={renderItemPokemon}
-          renderSectionHeader={({ section: { title } }) => (
-            <Text style={styles.header}>Tipo: {title}</Text>
-          )}
-          ListHeaderComponent={<Text style={styles.mainTitle}>Pokédex con SectionList</Text>}
-        />
-      ) : (
+      <View style={styles.container}>
         <FlatList
-          data={pokemonPlano}
-          keyExtractor={(item) => `flat-${item.id.toString()}`}
-          renderItem={renderItemPokemon}
-          ListHeaderComponent={<Text style={styles.mainTitle}>Pokédex con FlatList</Text>}
+          data={database}
+          keyExtractor={(item, index) => index}
+          renderItem={({ item }) => (
+            <View style={styles.nota}>
+              <Text>{item}</Text>
+            </View>
+          )}
+          ListEmptyComponent={<Text>No hay notas aún.</Text>}
         />
-      )}
-    </SafeAreaView>
+        <StatusBar style="auto" />
+      </View>
+
+      {/* <View> para el <Button> */}
+      <View style={styles.fabButton}>
+        <Button
+          title="Agregar nota"
+          color="blue"
+          onPress={() => setModalVisible(true)}
+        />
+      </View>
+
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <Text style={{ marginBottom: 10 }}>Escribe tu nota:</Text>
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Escribe aquí..."
+              style={styles.input}
+            />
+            <View style={styles.modalBotones}>
+              <Button title="Guardar" color="#4caf50" onPress={addNote} />
+              <Button
+                title="Cancelar"
+                color="#f44336"
+                onPress={() => setModalVisible(false)}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 15,
-    color: '#333',
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  switchButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ff5733',
-  },
-  switchButtonActive: {
-    backgroundColor: '#ff5733',
-  },
-  switchButtonText: {
-    color: '#ff5733',
-    fontWeight: '600',
-  },
-  switchButtonTextActive: {
-    color: '#fff',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   header: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    backgroundColor: '#e0e0e0',
-    padding: 12,
-    color: '#424242',
+    width: "100%",
+    paddingTop: 50,
+    paddingBottom: 20,
+    backgroundColor: "blue",
+    alignItems: "center",
   },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    backgroundColor: '#fff',
+  headerText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
   },
-  image: {
-    width: 60,
-    height: 60,
-    marginRight: 15,
-    borderRadius: 30,
-    backgroundColor: '#eee',
+  fabButton: {
+    position: "absolute",
+    bottom: 60,
+    right: 30,
   },
-  name: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#333',
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modal: {
+    width: "90%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 8,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  modalBotones: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  nota: {
+    backgroundColor: "#e0e0e0",
+    padding: 10,
+    marginHorizontal: 20,
+    marginVertical: 5,
+    borderRadius: 5,
   },
 });
-
-export default App;
